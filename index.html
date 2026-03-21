@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pinpoint — Address to Coordinates</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F7F4EF;
+      --ink: #1A1A18;
+      --muted: #7A7A72;
+      --accent: #2D5BE3;
+      --accent-light: #EBF0FF;
+      --border: #DDD9D1;
+      --card: #FFFFFF;
+      --success: #1A7A5E;
+      --success-bg: #EDFAF5;
+      --error: #C0392B;
+      --error-bg: #FEF0EE;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    /* Background grid texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    header {
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+
+    .logo-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      background: var(--ink);
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .logo-mark svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--bg);
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      height: 48px;
+      padding: 0 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--ink);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(45,91,227,0.12);
+      background: #fff;
+    }
+
+    button {
+      height: 48px;
+      padding: 0 1.4rem;
+      background: var(--ink);
+      color: var(--bg);
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    button:hover { background: #2a2a26; }
+    button:active { transform: scale(0.98); }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      background: var(--accent-light);
+      border: 1px solid rgba(45,91,227,0.2);
+      border-radius: 12px;
+      animation: fadeUp 0.25s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .coords {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .coord-block {
+      background: #fff;
+      border: 1px solid rgba(45,91,227,0.15);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+
+    .coord-block .coord-name {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .coord-block .coord-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .copy-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .copy-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.85rem;
+      border: 1px solid rgba(45,91,227,0.25);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--accent);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.1s;
+      height: auto;
+    }
+
+    .copy-pill:hover { background: var(--accent-light); }
+    .copy-pill:active { transform: scale(0.97); }
+
+    .copy-pill svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .error-box {
+      display: none;
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: var(--error-bg);
+      border: 1px solid rgba(192,57,43,0.2);
+      border-radius: 10px;
+      font-size: 0.88rem;
+      color: var(--error);
+      animation: fadeUp 0.2s ease;
+    }
+
+    .display-address {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .open-maps {
+      font-size: 0.8rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .open-maps:hover { text-decoration: underline; }
+
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    footer a { color: var(--muted); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+    </div>
+    <h1>Find your <em>coordinates</em></h1>
+    <p class="subtitle">Enter any address to get its latitude &amp; longitude</p>
+  </header>
+
+  <div class="card">
+    <div class="input-group">
+      <label for="address">Address</label>
+      <div class="input-row">
+        <input
+          type="text"
+          id="address"
+          placeholder="10 Downing Street, London"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="lookupBtn" onclick="lookup()">
+          <span class="spinner" id="spinner"></span>
+          <span id="btnText">Look up</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-label">📍 Result</div>
+      <div class="display-address" id="displayAddress"></div>
+      <div class="coords">
+        <div class="coord-block">
+          <div class="coord-name">Latitude</div>
+          <div class="coord-val" id="latVal">—</div>
+        </div>
+        <div class="coord-block">
+          <div class="coord-name">Longitude</div>
+          <div class="coord-val" id="lngVal">—</div>
+        </div>
+      </div>
+      <div class="copy-row">
+        <button class="copy-pill" onclick="copyPair()">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy lat, lng
+        </button>
+        <button class="copy-pill" onclick="copyJson()">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy as JSON
+        </button>
+        <a class="open-maps" id="mapsLink" href="#" target="_blank">
+          Open in Maps ↗
+        </a>
+      </div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <footer>
+    Powered by <a href="https://nominatim.openstreetmap.org/" target="_blank">OpenStreetMap Nominatim</a> &mdash; free &amp; open
+  </footer>
+
+</div>
+
+<script>
+  let currentLat = null, currentLng = null;
+
+  document.getElementById('address').addEventListener('keydown', e => {
+    if (e.key === 'Enter') lookup();
+  });
+
+  async function lookup() {
+    const input = document.getElementById('address');
+    const q = input.value.trim();
+    if (!q) { input.focus(); return; }
+
+    const btn = document.getElementById('lookupBtn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btnText');
+
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    btnText.textContent = 'Looking…';
+
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'none';
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&addressdetails=1`;
+      const res = await fetch(url, {
+        headers: { 'Accept-Language': 'en', 'User-Agent': 'PinpointGeocoder/1.0' }
+      });
+      const data = await res.json();
+
+      if (!data.length) throw new Error('No results found. Try a more specific address.');
+
+      const place = data[0];
+      currentLat = parseFloat(place.lat).toFixed(6);
+      currentLng = parseFloat(place.lon).toFixed(6);
+      const displayName = place.display_name;
+
+      document.getElementById('latVal').textContent = currentLat;
+      document.getElementById('lngVal').textContent = currentLng;
+      document.getElementById('displayAddress').textContent = displayName;
+      document.getElementById('mapsLink').href =
+        `https://www.google.com/maps?q=${currentLat},${currentLng}`;
+
+      const resultEl = document.getElementById('result');
+      resultEl.style.display = 'block';
+      // Trigger re-animation
+      resultEl.style.animation = 'none';
+      resultEl.offsetHeight;
+      resultEl.style.animation = '';
+
+    } catch (err) {
+      const box = document.getElementById('errorBox');
+      box.textContent = err.message || 'Something went wrong. Please try again.';
+      box.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = 'Look up';
+    }
+  }
+
+  function copyPair() {
+    if (!currentLat) return;
+    navigator.clipboard.writeText(`${currentLat}, ${currentLng}`);
+    flash(event.currentTarget, 'Copied!');
+  }
+
+  function copyJson() {
+    if (!currentLat) return;
+    const json = JSON.stringify({ lat: parseFloat(currentLat), lng: parseFloat(currentLng) }, null, 2);
+    navigator.clipboard.writeText(json);
+    flash(event.currentTarget, 'Copied!');
+  }
+
+  function flash(btn, msg) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = `✓ ${msg}`;
+    setTimeout(() => { btn.innerHTML = orig; }, 1500);
+  }
+</script>
+</body>
+</html>
