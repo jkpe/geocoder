@@ -365,9 +365,13 @@
       margin-top: 2rem;
       font-size: 0.78rem;
       color: var(--muted);
+      line-height: 1.5;
     }
 
+    footer p + p { margin-top: 0.45rem; }
+
     footer a { color: var(--muted); }
+    footer a:hover { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -433,7 +437,8 @@
   </div>
 
   <footer>
-    Powered by <a href="https://nominatim.openstreetmap.org/" target="_blank">OpenStreetMap Nominatim</a> &mdash; free &amp; open
+    <p>Made by <a href="https://www.jackpearce.co.uk/" target="_blank" rel="noopener noreferrer">Jack Pearce</a> ♥ · <a href="https://github.com/jkpe/geocoder" target="_blank" rel="noopener noreferrer">Open source on GitHub</a></p>
+    <p>Powered by <a href="https://nominatim.openstreetmap.org/" target="_blank" rel="noopener noreferrer">OpenStreetMap Nominatim</a> &mdash; free &amp; open</p>
   </footer>
 
 </div>
