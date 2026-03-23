@@ -462,18 +462,14 @@
     document.getElementById('errorBox').style.display = 'none';
 
     try {
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&addressdetails=1`;
-      const res = await fetch(url, {
-        headers: { 'Accept-Language': 'en', 'User-Agent': 'Geocoder/1.0' }
-      });
+      const res = await fetch(`/geocode?q=${encodeURIComponent(q)}`);
       const data = await res.json();
 
-      if (!data.length) throw new Error('No results found. Try a more specific address.');
+      if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
 
-      const place = data[0];
-      currentLat = parseFloat(place.lat).toFixed(6);
-      currentLng = parseFloat(place.lon).toFixed(6);
-      const displayName = place.display_name;
+      currentLat = data.lat;
+      currentLng = data.lng;
+      const displayName = data.display_name;
 
       document.getElementById('latVal').textContent = currentLat;
       document.getElementById('lngVal').textContent = currentLng;
