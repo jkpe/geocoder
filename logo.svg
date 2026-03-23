@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="110" fill="#2D5BE3"/>
+
+  <!-- Location pin shape (teardrop) -->
+  <path d="M256 108
+    C198 108 152 154 152 212
+    C152 270 208 340 256 404
+    C304 340 360 270 360 212
+    C360 154 314 108 256 108 Z"
+    fill="white"/>
+
+  <!-- Inner circle (accent filled, to make a donut) -->
+  <circle cx="256" cy="212" r="44" fill="#2D5BE3"/>
+
+  <!-- Crosshair lines (coordinates symbol) -->
+  <line x1="232" y1="212" x2="280" y2="212" stroke="white" stroke-width="7" stroke-linecap="round"/>
+  <line x1="256" y1="188" x2="256" y2="236" stroke="white" stroke-width="7" stroke-linecap="round"/>
+</svg>
