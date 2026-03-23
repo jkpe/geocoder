@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "geocoder",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-03-23",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      // Run: wrangler kv namespace create CACHE
+      // Then replace the placeholder below with the returned id
+      "id": "d110656af8c44537ada806a8d8ed1d76"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
