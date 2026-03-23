@@ -3,6 +3,8 @@
   "name": "geocoder",
   "main": "src/worker.js",
   "compatibility_date": "2026-03-23",
+  "workers_dev": false,
+  "preview_urls": false,
   "assets": {
     "directory": "./public",
     "binding": "ASSETS"
@@ -13,6 +15,12 @@
       // Run: wrangler kv namespace create CACHE
       // Then replace the placeholder below with the returned id
       "id": "d110656af8c44537ada806a8d8ed1d76"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "geocoder.top",
+      "custom_domain": true
     }
   ],
   "observability": {
