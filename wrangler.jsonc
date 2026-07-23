@@ -19,7 +19,7 @@
   ],
   "routes": [
     {
-      "pattern": "geocoder.top",
+      "pattern": "geocoder.jackpearce.co.uk",
       "custom_domain": true
     }
   ],
